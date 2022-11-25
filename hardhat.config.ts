@@ -5,6 +5,7 @@ import 'hardhat-deploy-ethers';
 import '@typechain/hardhat';
 import 'solidity-coverage';
 import "@nomiclabs/hardhat-etherscan";
+import "@nomiclabs/hardhat-waffle";
 
 const config: HardhatUserConfig = {
     solidity: {

@@ -5,7 +5,7 @@ import { solidity } from "ethereum-waffle";
 import { SrgToken, SrgToken__factory, ColdStaking, ColdStaking__factory } from "../types";
 import { isAddress } from "ethers/lib/utils";
 
-describe.only('Cold staking tests', async () => {
+describe('Cold staking tests', async () => {
     let srgToken: SrgToken, srgFactory: SrgToken__factory;
     let coldStaking: ColdStaking, coldFactory: ColdStaking__factory;
     let adminSigner: Signer, aliceSigner: Signer, bobSigner: Signer;

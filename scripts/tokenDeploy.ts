@@ -1,19 +1,18 @@
-import { constants } from "ethers";
 import { run, ethers } from "hardhat";
-import { SrgToken__factory, ColdStaking__factory, ERC20 } from "../types";
+import { Universe__factory } from "../types";
 
 async function deploy() {
 
 
-    // const coldStakingFac = await ethers.getContractFactory("ColdStaking") as ColdStaking__factory;
+    const ownerAddress = '';
+    const priceFeedAddress = '';
 
 
-    // const coldStaking = await coldStakingFac.deploy()
-    const ERC20_token = (await ethers.getContractFactory("SrgToken")) as SrgToken__factory;
-    const erc20 = await ERC20_token.deploy("0x047642994D4A327833d71760c4Fe7d08f304d96E", constants.AddressZero);
+    const universeFactory = (await ethers.getContractFactory("SrgToken")) as Universe__factory;
+    const univToken = await universeFactory.deploy(ownerAddress, priceFeedAddress);
 
-    await erc20.deployed();
-    console.log("SRG Token deployed at", erc20.address);
+    await univToken.deployed();
+    console.log("SRG Token deployed at", univToken.address);
 
     function delay(ms: number) {
         return new Promise((resolve) => setTimeout(resolve, ms));
@@ -27,14 +26,14 @@ async function deploy() {
 
     try {
         await run("verify:verify", {
-            address: erc20.address,
-            contract: "contracts/SrgToken.sol:SrgToken",
-            constructorArguments: ["0x047642994D4A327833d71760c4Fe7d08f304d96E", constants.AddressZero],
+            address: univToken.address,
+            contract: "contracts/UniverseToken.sol:UniverseToken",
+            constructorArguments: [ownerAddress, priceFeedAddress],
         });
     } catch (e: any) {
         console.error(`error in verifying: ${e.message}`);
     }
-    return erc20.address;
+    return univToken.address;
 }
 
 if (require.main === module) {

@@ -38,8 +38,8 @@ contract Staking {
     //  user address => his amount of stakedBalance
     mapping(address => uint256) public stakedBalance;
 
-    constructor(address _srgTokenAddress) {
-        univToken = IERC20(_srgTokenAddress);
+    constructor(address _univTokenAddress) {
+        univToken = IERC20(_univTokenAddress);
     }
 
     function stake(uint256 amount, uint256 dayAmount) external {
@@ -49,7 +49,7 @@ contract Staking {
 
         require(dayAmount <= 365, "Maximum time staked is one year");
         require(
-            srgToken.balanceOf(msg.sender) >=
+            univToken.balanceOf(msg.sender) >=
                 stakedBalance[msg.sender] + amount,
             "Don't have any unlocked tokens to stake"
         );
@@ -73,10 +73,10 @@ contract Staking {
         //
         //  BC - TR >= FR
 
-        srgToken.transferFrom(msg.sender, address(this), amount);
+        univToken.transferFrom(msg.sender, address(this), amount);
 
         require(
-            srgToken.balanceOf(address(this)) - amount - _totalReward >=
+            univToken.balanceOf(address(this)) - amount - _totalReward >=
                 finalReward,
             "Contract doesn't have enough SRG Token to give rewards"
         );
@@ -107,7 +107,7 @@ contract Staking {
             "Stake has not expired"
         );
 
-        srgToken.transfer(
+        univToken.transfer(
             msg.sender,
             stakes[stakeId].amountStaked + stakes[stakeId].finalReward
         );
@@ -118,7 +118,7 @@ contract Staking {
 
         uint256 amountToBeBurned = 0; // TBD
 
-        srgToken.transfer(address(0), amountToBeBurned);
+        univToken.transfer(address(0), amountToBeBurned);
 
         _totalReward -= stakes[stakeId].finalReward;
         stakedBalance[msg.sender] -= stakes[stakeId].amountStaked;
