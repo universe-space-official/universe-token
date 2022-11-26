@@ -8,9 +8,6 @@ import "@openzeppelin/contracts/finance/VestingWallet.sol";
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-//Tests
-import "hardhat/console.sol";
-
 contract UniverseToken is ERC20, Ownable {
     AggregatorV3Interface internal priceFeed;
 
@@ -19,6 +16,14 @@ contract UniverseToken is ERC20, Ownable {
     event TokensClaimed(uint256 amount);
     event AddedStableCoin(address stableCoinAddress);
     event RemovedStableCoin(address stableCoinAddress);
+
+    event WalletFunded(address walletAddress, uint256 amountFunded);
+    event VestingWalletFunded(
+        address walletAddress,
+        uint64 start,
+        uint64 duration,
+        uint256 amountFunded
+    );
 
     // Value of univToken in dollars (18 decimals)
     uint256 public univTokenUSD;
@@ -183,11 +188,11 @@ contract UniverseToken is ERC20, Ownable {
 
     function buyTokensWithNative() external payable {
         require(!buysPaused, "Buys are paused");
-        uint256 srgTokens = getAmountOfTokens(msg.value);
+        uint256 univTokens = getAmountOfTokens(msg.value);
 
-        IERC20(address(this)).transfer(_msgSender(), srgTokens);
+        IERC20(address(this)).transfer(_msgSender(), univTokens);
 
-        emit TokensClaimed(srgTokens);
+        emit TokensClaimed(univTokens);
     }
 
     // View function to get amount of tokens per eth
@@ -208,83 +213,29 @@ contract UniverseToken is ERC20, Ownable {
     // This function funds all wallets
     // Owner defines the beneficiary address, startingTimestamp (if applicable) and duration (if applicable)
 
-    function fundWallets(
-        // Vesting wallets
-        VestingInfo memory viFounders,
-        VestingInfo memory viDevsEmployees,
-        VestingInfo memory viKeyPartnersAdv,
-        VestingInfo memory viDevAdoptionPrg,
-        VestingInfo memory viStrategicFunding,
-        VestingInfo memory viSeedFunding,
-        VestingInfo memory viFutureEmployee,
-        VestingInfo memory viEarlyBackers,
-        // Normal beneficiaries
-        address liqPool,
-        address stakingRewards,
-        address liquidityPrograms,
-        address longTermProtocol
+    function fundWallet(address walletAddress, uint256 amount)
+        external
+        onlyOwner
+    {
+        _mint(walletAddress, amount);
+        emit WalletFunded(walletAddress, amount);
+    }
+
+    function fundVestingWallet(
+        VestingInfo memory vestingWalletInfo,
+        uint256 amount
     ) external onlyOwner {
-        VestingWallet foundersWallet = new VestingWallet(
-            viFounders.beneficiaryAddress,
-            viFounders.startTimestamp,
-            viFounders.durationSeconds
+        VestingWallet vestingWallet = new VestingWallet(
+            vestingWalletInfo.beneficiaryAddress,
+            vestingWalletInfo.startTimestamp,
+            vestingWalletInfo.durationSeconds
         );
-        VestingWallet devsEmployeeWallet = new VestingWallet(
-            viDevsEmployees.beneficiaryAddress,
-            viDevsEmployees.startTimestamp,
-            viDevsEmployees.durationSeconds
+        _mint(address(vestingWallet), amount);
+        emit VestingWalletFunded(
+            address(vestingWallet),
+            vestingWalletInfo.startTimestamp,
+            vestingWalletInfo.durationSeconds,
+            amount
         );
-        VestingWallet keyPartnersAdvWallet = new VestingWallet(
-            viKeyPartnersAdv.beneficiaryAddress,
-            viKeyPartnersAdv.startTimestamp,
-            viKeyPartnersAdv.durationSeconds
-        );
-        VestingWallet devAdoptionPrgWallet = new VestingWallet(
-            viDevAdoptionPrg.beneficiaryAddress,
-            viDevAdoptionPrg.startTimestamp,
-            viDevAdoptionPrg.durationSeconds
-        );
-        VestingWallet strategicFundingWallet = new VestingWallet(
-            viStrategicFunding.beneficiaryAddress,
-            viStrategicFunding.startTimestamp,
-            viStrategicFunding.durationSeconds
-        );
-        VestingWallet seedFundingWallet = new VestingWallet(
-            viSeedFunding.beneficiaryAddress,
-            viSeedFunding.startTimestamp,
-            viSeedFunding.durationSeconds
-        );
-        VestingWallet futureEmplyeeWallet = new VestingWallet(
-            viFutureEmployee.beneficiaryAddress,
-            viFutureEmployee.startTimestamp,
-            viFutureEmployee.durationSeconds
-        );
-        VestingWallet earlyBackersWallet = new VestingWallet(
-            viEarlyBackers.beneficiaryAddress,
-            viEarlyBackers.startTimestamp,
-            viEarlyBackers.durationSeconds
-        );
-
-        VestingWallet communityEventWallet = new VestingWallet(
-            viEarlyBackers.beneficiaryAddress,
-            viEarlyBackers.startTimestamp,
-            viEarlyBackers.durationSeconds
-        );
-
-        //Transfering amounts to wallets
-
-        _mint(liqPool, 200000000 ether);
-        _mint(stakingRewards, 230000000 ether);
-        _mint(liquidityPrograms, 90000000 ether);
-        _mint(address(foundersWallet), 150000000 ether);
-        _mint(address(devsEmployeeWallet), 60000000 ether);
-        _mint(address(keyPartnersAdvWallet), 10000000 ether);
-        _mint(address(devAdoptionPrgWallet), 30000000 ether);
-        _mint(address(strategicFundingWallet), 10000000 ether);
-        _mint(address(seedFundingWallet), 20000000 ether);
-        _mint(address(futureEmplyeeWallet), 50000000 ether);
-        _mint(address(earlyBackersWallet), 20000000 ether);
-        _mint(address(communityEventWallet), 70000000 ether);
-        _mint(longTermProtocol, 60000000 ether);
     }
 }
