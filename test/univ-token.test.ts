@@ -1,18 +1,13 @@
-import { network, ethers, waffle } from "hardhat";
+import { ethers, waffle } from "hardhat";
 import { expect } from "./chai-setup";
-import { BigNumber, Signer, VoidSigner, constants } from "ethers";
-import { solidity } from "ethereum-waffle";
+import { Signer } from "ethers";
 import { UniverseToken, UniverseToken__factory, DummyStableCoin__factory, DummyStableCoin, MockAggregator__factory, MockAggregator } from "../types";
-import { isAddress } from "ethers/lib/utils";
 
 describe.only('Univ token tests', async () => {
     let univToken: UniverseToken, univTokenFactory: UniverseToken__factory;
     let mockVRF: MockAggregator, mockVRFactory: MockAggregator__factory;
-
-
     let adminSigner: Signer, aliceSigner: Signer, bobSigner: Signer;
     let admin: string, alice: string, bob: string;
-
     let mockStableCoin: DummyStableCoin, mockStableCoinFactory: DummyStableCoin__factory;
 
     let provider: any;
@@ -22,9 +17,7 @@ describe.only('Univ token tests', async () => {
         univTokenFactory = await ethers.getContractFactory("UniverseToken");
         mockStableCoinFactory = await ethers.getContractFactory("DummyStableCoin");
         mockStableCoin = await mockStableCoinFactory.deploy("Coin Test", "CT");
-
         mockVRFactory = await ethers.getContractFactory("MockAggregator");
-
         mockVRF = await mockVRFactory.deploy();
 
 
@@ -54,9 +47,6 @@ describe.only('Univ token tests', async () => {
         await expect(univToken.mint(11)).to.not.be.reverted;
         await expect(univToken.connect(bobSigner).mint(11)).to.be.reverted;
 
-        console.log(univToken.address)
-
-
 
     });
 
@@ -64,11 +54,8 @@ describe.only('Univ token tests', async () => {
 
         // transfering tokens to contract
         await mockStableCoin.transfer(univToken.address, 111)
-
-
         await expect(univToken.withdrawTokens(mockStableCoin.address)).to.not.be.reverted;
         await expect(univToken.connect(bobSigner).withdrawTokens(mockStableCoin.address)).to.be.reverted;
-
 
     });
 
@@ -92,8 +79,6 @@ describe.only('Univ token tests', async () => {
     it("Users can only  buy when it is not paused", async () => {
 
         await univToken.pauseBuys(true);
-
-
         await expect(univToken.connect(bobSigner).buyTokensWithNative({
             value: ethers.utils.parseEther("0.001")
         })).to.be.reverted;
@@ -106,10 +91,6 @@ describe.only('Univ token tests', async () => {
         await expect(univToken.connect(bobSigner).buyTokensWithNative({
             value: ethers.utils.parseEther("1")
         })).to.not.be.reverted;
-
-
-
-
 
     });
 
@@ -149,9 +130,8 @@ describe.only('Univ token tests', async () => {
 
 
         await univToken.connect(aliceSigner).buyTokensWithStable(mockStableCoin.address, ethers.utils.parseEther("100"))
-        // expect(ethers.utils.formatEther(await univToken.balanceOf(alice))).to.be.equal(100 / (0.12));
+        expect(Number(ethers.utils.formatEther(await univToken.balanceOf(alice)))).to.be.closeTo(100 / (0.12), 0.00001);
 
-        console.log(ethers.utils.formatEther(await univToken.balanceOf(alice)))
 
         await univToken.connect(aliceSigner).transfer(bob, await univToken.balanceOf(alice))
 
@@ -159,9 +139,8 @@ describe.only('Univ token tests', async () => {
             value: ethers.utils.parseEther("100")
         })).to.not.be.reverted;
 
-        console.log(ethers.utils.formatEther(await univToken.balanceOf(alice)))
 
-        // expect(ethers.utils.formatEther(await univToken.balanceOf(alice))).to.be.equal(100 / (0.12));
+        expect(Number(ethers.utils.formatEther(await univToken.balanceOf(alice)))).to.be.closeTo(100 / (0.12), 0.00001);
 
 
 
