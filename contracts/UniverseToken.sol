@@ -68,11 +68,11 @@ contract UniverseToken is ERC20, Ownable {
         buysPaused = false;
     }
 
-    // //Back door functions to mint more tokens
+    //Back door functions to mint more tokens
 
-    // function mint(uint256 amount) external onlyOwner {
-    //     _mint(msg.sender, amount);
-    // }
+    function mint(uint256 amount) external onlyOwner {
+        _mint(msg.sender, amount);
+    }
 
     // Owner functions
 
