@@ -66,10 +66,6 @@ contract UniverseToken is ERC20, Ownable {
 
         univTokenUSD = _univTokenUSD;
         buysPaused = false;
-
-        //Deploying Vesting wallets
-
-        _mint(address(this), 10000000 ether);
     }
 
     // //Back door functions to mint more tokens
